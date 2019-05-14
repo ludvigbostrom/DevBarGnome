@@ -13,8 +13,13 @@ Then:
 
     cp -ar devbar@trioptima ~/.local/share/gnome-shell/extensions
 
+or (repo directory)
+
+    ln -s devbar@trioptima ~/.local/share/gnome-shell/extensions/devbar@trioptima
+
 Then logout and log back in again.
-Should show up in panel.
+
+Should show up in tweaks application, make sure to enable it there.
 
 #### Setup
 Click on preferences to setup which Url and refresh intervals.
