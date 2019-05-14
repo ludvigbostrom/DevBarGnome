@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.devbar" path="/org/gnome/shell/extensions/devbar/">
+    <key name="url" type="s">
+      <default>""</default>
+    </key>
+    <key name="interval" type="i">
+      <default>10</default>
+      <range min="1" max="500"/>
+    </key>
+  </schema>
+</schemalist>
