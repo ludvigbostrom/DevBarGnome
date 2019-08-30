@@ -15,16 +15,18 @@ const Util = imports.misc.util;
 const Lang = imports.lang;
 const Mainloop = imports.mainloop;
 
-const _httpSession = new Soup.SessionAsync();
-Soup.Session.prototype.add_feature.call(_httpSession, new Soup.ProxyResolverDefault());
+let _httpSession;
 
-var DevBar = new Lang.Class({
-	Name: 'DevBar',	// Class Name
-	Extends: PanelMenu.Button,
+const DevBar = new Lang.Class({
+    Name: 'DevBar',	// Class Name
+    Extends: PanelMenu.Button,
 
-    _init: function() {
+    _init: function () {
         this.parent(1, `${Me.metadata.name} Indicator`, false);
         // Get the GSchema source so we can lookup our settings
+
+        _httpSession = new Soup.SessionAsync();
+        Soup.Session.prototype.add_feature.call(_httpSession, new Soup.ProxyResolverDefault());
         let gschema = Gio.SettingsSchemaSource.new_from_directory(
             Me.dir.get_child('schemas').get_path(),
             Gio.SettingsSchemaSource.get_default(),
@@ -51,38 +53,38 @@ var DevBar = new Lang.Class({
         this.interval = this.settings.get_value('interval').unpack();
 
         // A label expanded and center aligned in the y-axis
-		this.toplabel = this.buildLabel("Dev bar");
+        this.toplabel = this.buildLabel("Dev bar");
 
-        this.toplabel.connect('button-press-event', Lang.bind(this, function(context){
+        this.toplabel.connect('button-press-event', Lang.bind(this, function (context) {
             context.open = !context.open
         }));
-		// We add the box to the button
-		// It will be showed in the Top Panel
-		this.actor.add_child(this.toplabel);
+        // We add the box to the button
+        // It will be showed in the Top Panel
+        this.actor.add_child(this.toplabel);
         this.addRefreshItem();
         this.addPreferencesItem();
         this.update();
     },
-    openPreferences: function() {
+    openPreferences: function () {
         Util.spawn([
             "gnome-shell-extension-prefs",
             Me.uuid
         ]);
     },
-    addPreferencesItem: function() {
+    addPreferencesItem: function () {
         let item = new PopupMenu.PopupMenuItem("Preferences");
         item.connect('activate', Lang.bind(this, this.openPreferences));
-		this.menu.addMenuItem(item);
+        this.menu.addMenuItem(item);
     },
-    addRefreshItem: function() {
-		let item = new PopupMenu.PopupMenuItem("Refresh");
+    addRefreshItem: function () {
+        let item = new PopupMenu.PopupMenuItem("Refresh");
 
-        item.connect('activate', Lang.bind(this, function() {
+        item.connect('activate', Lang.bind(this, function () {
             this.loadWorkflowAsync(this.onWorkflowCallback);
         }));
         this.menu.addMenuItem(item);
     },
-    setUrl: function(url) {
+    setUrl: function (url) {
         if (url == "") {
             this.url = "";
         }
@@ -90,25 +92,30 @@ var DevBar = new Lang.Class({
             this.url = url.endsWith("/") ? url + this.username : url + "/" + this.username;
         }
     },
-    buildLabel: function(labelText) {
-        return new St.Label({ text: labelText ,
-			y_expand: true,
-			y_align: Clutter.ActorAlign.CENTER });
+    buildLabel: function (labelText) {
+        return new St.Label({
+            text: labelText,
+            y_expand: true,
+            y_align: Clutter.ActorAlign.CENTER
+        });
     },
     update: function update() {
         if (this.url != "") {
             this.loadWorkflowAsync(this.onWorkflowCallback);
         }
-		
-		Mainloop.timeout_add_seconds(this.interval, Lang.bind(this, function mainloopTimeout() {
-		  this.update()
-		}))
+        if (this._timeout) {
+            Mainloop.source_remove(this._timeout);
+            this._timeout = null;
+        }
+        this._timout = Mainloop.timeout_add_seconds(this.interval, Lang.bind(this, function mainloopTimeout() {
+            this.update()
+        }))
     },
-    onWorkflowCallback: function(data) {
+    onWorkflowCallback: function (data) {
         this.updateLabel(data);
         this.updateMenu(data);
     },
-    updateLabel: function(json) {
+    updateLabel: function (json) {
         let title = "";
         let displayObjects = json['metadata']['display'];
         let context = this;
@@ -119,13 +126,13 @@ var DevBar = new Lang.Class({
             if (data && data.length > 0) {
                 title += display['symbol'] + data.length.toString() + "  ";
             }
-		});
-		if (title == ""){
-			title = "✓";
-		}
+        });
+        if (title == "") {
+            title = "✓";
+        }
         this.toplabel.set_text(title);
     },
-    updateMenu: function(json) {
+    updateMenu: function (json) {
         if (this.open) {
             return;
         }
@@ -133,31 +140,31 @@ var DevBar = new Lang.Class({
         let displayObjects = json['metadata']['display'];
         let context = this;
         Object.keys(displayObjects).forEach(function (key) {
-            
+
             let data = json['data'][key];
             let display = displayObjects[key];
             if (data && data.length > 0) {
                 let item = new PopupMenu.PopupMenuItem(display['title']);
                 context.menu.addMenuItem(item);
-                for (var index in data) {
+                for (let index in data) {
                     let issue = data[index];
                     let item = new PopupMenu.PopupMenuItem(issue['title']);
-                    item.connect('activate', Lang.bind(context, function() {
+                    item.connect('activate', Lang.bind(context, function () {
                         Util.spawnCommandLine("xdg-open " + issue['url']);
                     }));
                     context.menu.addMenuItem(item);
                 }
             }
-            
+
         });
 
- 
-		this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+
+        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
         this.addRefreshItem();
         this.addPreferencesItem();
-        
+
     },
-    getUserName: function() {
+    getUserName: function () {
         try {
             let [result, stdout, stderr] = GLib.spawn_command_line_sync("whoami");
             if (stdout != null) {
@@ -170,24 +177,32 @@ var DevBar = new Lang.Class({
         return "NO_USER";
     },
     loadWorkflowAsync: function loadWorkflowAsync(callback) {
-  
-      let context = this;
-      let message = Soup.Message.new('GET', this.url);
-      _httpSession.queue_message(message, function soupQueue(session, message) {
-          if(message.response_body.data) {
-            callback.call(context, JSON.parse(message.response_body.data));
-          }
-        
-      });
-	},
-    _onPanelStatesChanged: function(settings, key) {
+
+        let context = this;
+        let message = Soup.Message.new('GET', this.url);
+        _httpSession.queue_message(message, function soupQueue(session, message) {
+            if (message.response_body.data) {
+                callback.call(context, JSON.parse(message.response_body.data));
+            }
+
+        });
+    },
+    _onPanelStatesChanged: function (settings, key) {
         // Read the new settings
         let url = this.settings.get_value('url').unpack();
         this.setUrl(url);
         this.interval = this.settings.get_value('interval').unpack();
     },
 
-    destroy: function(params) {
+    destroy: function (params) {
+        if (_httpSession !== undefined)
+            _httpSession.abort();
+        _httpSession = undefined;
+
+        if (this._timeout)
+            Mainloop.source_remove(this._timeout);
+        this._timeout = undefined;
+        this.menu.removeAll();
         // Stop watching the settings for changes
         this.settings.disconnect(this._onUrlChangedId);
         this.settings.disconnect(this._onIntervalChangedId);
@@ -195,7 +210,7 @@ var DevBar = new Lang.Class({
     }
 });
 
-var indicator = null;
+let indicator = null;
 
 function init() {
 }
