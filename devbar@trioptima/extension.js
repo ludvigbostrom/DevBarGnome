@@ -55,12 +55,11 @@ const DevBar = new Lang.Class({
         // A label expanded and center aligned in the y-axis
         this.toplabel = this.buildLabel("Dev bar");
 
-        this.toplabel.connect('button-press-event', Lang.bind(this, function (context) {
-            context.open = !context.open
-        }));
+        
         // We add the box to the button
         // It will be showed in the Top Panel
-        this.actor.add_child(this.toplabel);
+        this.add_child(this.toplabel);
+
         this.addRefreshItem();
         this.addPreferencesItem();
         this.update();
@@ -100,7 +99,7 @@ const DevBar = new Lang.Class({
         });
     },
     update: function update() {
-        if (this.url != "") {
+        if (this.url != "" && !this.menu.isOpen) {
             this.loadWorkflowAsync(this.onWorkflowCallback);
         }
         if (this._timeout) {
@@ -108,7 +107,7 @@ const DevBar = new Lang.Class({
             this._timeout = null;
         }
         this._timout = Mainloop.timeout_add_seconds(this.interval, Lang.bind(this, function mainloopTimeout() {
-            this.update()
+            this.update();
         }))
     },
     onWorkflowCallback: function (data) {
@@ -116,6 +115,7 @@ const DevBar = new Lang.Class({
         this.updateMenu(data);
     },
     updateLabel: function (json) {
+        this.currentCount = 0;
         let title = "";
         let displayObjects = json['metadata']['display'];
         let context = this;
@@ -124,6 +124,7 @@ const DevBar = new Lang.Class({
             let data = json['data'][key];
             let display = displayObjects[key];
             if (data && data.length > 0) {
+                context.currentCount += 1 + data.length;
                 title += display['symbol'] + data.length.toString() + "  ";
             }
         });
@@ -133,9 +134,7 @@ const DevBar = new Lang.Class({
         this.toplabel.set_text(title);
     },
     updateMenu: function (json) {
-        if (this.open) {
-            return;
-        }
+
         this.menu.removeAll();
         let displayObjects = json['metadata']['display'];
         let context = this;
@@ -144,15 +143,30 @@ const DevBar = new Lang.Class({
             let data = json['data'][key];
             let display = displayObjects[key];
             if (data && data.length > 0) {
-                let item = new PopupMenu.PopupMenuItem(display['title']);
+                let item = null;
+                if (context.currentCount > 40) {
+                    item = new PopupMenu.PopupSubMenuMenuItem(display['title']);
+                    item.menu.actor.style = 'max-height: 300px;';
+                }
+                else {
+                    item = new PopupMenu.PopupMenuItem(display['title']);
+                }
                 context.menu.addMenuItem(item);
                 for (let index in data) {
                     let issue = data[index];
-                    let item = new PopupMenu.PopupMenuItem(issue['title']);
-                    item.connect('activate', Lang.bind(context, function () {
+                    let subItem = new PopupMenu.PopupMenuItem(issue['title']);
+                    subItem.connect('activate', Lang.bind(context, function () {
                         Util.spawnCommandLine("xdg-open " + issue['url']);
                     }));
-                    context.menu.addMenuItem(item);
+                    if (context.currentCount > 40) {
+                        item.menu.addMenuItem(subItem);
+                        
+                    }
+                    else {
+                       
+                        context.menu.addMenuItem(subItem);
+                    }
+                    
                 }
             }
 
@@ -180,9 +194,21 @@ const DevBar = new Lang.Class({
 
         let context = this;
         let message = Soup.Message.new('GET', this.url);
+
+        if (!_httpSession) {
+            _httpSession = new Soup.SessionAsync();
+            Soup.Session.prototype.add_feature.call(_httpSession, new Soup.ProxyResolverDefault());
+        }
         _httpSession.queue_message(message, function soupQueue(session, message) {
             if (message.response_body.data) {
-                callback.call(context, JSON.parse(message.response_body.data));
+                try {
+                    callback.call(context, JSON.parse(message.response_body.data));
+                }
+                catch (err) {
+                    global.log(err.message);
+                    context.toplabel.set_text("!");
+                    
+                }
             }
 
         });
