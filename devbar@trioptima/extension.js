@@ -14,6 +14,7 @@ const Soup = imports.gi.Soup;
 const Util = imports.misc.util;
 const Lang = imports.lang;
 const Mainloop = imports.mainloop;
+const ByteArray = imports.byteArray;
 
 let _httpSession;
 
@@ -22,6 +23,9 @@ const DevBar = new Lang.Class({
     Extends: PanelMenu.Button,
 
     _init: function () {
+        this.stop = false;
+        
+
         this.parent(1, `${Me.metadata.name} Indicator`, false);
         // Get the GSchema source so we can lookup our settings
 
@@ -65,17 +69,23 @@ const DevBar = new Lang.Class({
         this.update();
     },
     openPreferences: function () {
+        
+
         Util.spawn([
             "gnome-shell-extension-prefs",
             Me.uuid
         ]);
     },
     addPreferencesItem: function () {
+        
+
         let item = new PopupMenu.PopupMenuItem("Preferences");
         item.connect('activate', Lang.bind(this, this.openPreferences));
         this.menu.addMenuItem(item);
     },
     addRefreshItem: function () {
+        
+
         let item = new PopupMenu.PopupMenuItem("Refresh");
 
         item.connect('activate', Lang.bind(this, function () {
@@ -84,6 +94,8 @@ const DevBar = new Lang.Class({
         this.menu.addMenuItem(item);
     },
     setUrl: function (url) {
+        
+
         if (url == "") {
             this.url = "";
         }
@@ -92,6 +104,8 @@ const DevBar = new Lang.Class({
         }
     },
     buildLabel: function (labelText) {
+        
+
         return new St.Label({
             text: labelText,
             y_expand: true,
@@ -99,6 +113,14 @@ const DevBar = new Lang.Class({
         });
     },
     update: function update() {
+        
+        if (this.stop) {
+
+            Mainloop.source_remove(this._timeout);
+            this._timeout = null;
+            return;
+        }
+
         if (this.url != "" && !this.menu.isOpen) {
             this.loadWorkflowAsync(this.onWorkflowCallback);
         }
@@ -107,14 +129,20 @@ const DevBar = new Lang.Class({
             this._timeout = null;
         }
         this._timout = Mainloop.timeout_add_seconds(this.interval, Lang.bind(this, function mainloopTimeout() {
+            
+
             this.update();
         }))
     },
     onWorkflowCallback: function (data) {
+        
+
         this.updateLabel(data);
         this.updateMenu(data);
     },
     updateLabel: function (json) {
+        
+
         this.currentCount = 0;
         let title = "";
         let displayObjects = json['metadata']['display'];
@@ -134,6 +162,8 @@ const DevBar = new Lang.Class({
         this.toplabel.set_text(title);
     },
     updateMenu: function (json) {
+        
+
 
         this.menu.removeAll();
         let displayObjects = json['metadata']['display'];
@@ -179,10 +209,12 @@ const DevBar = new Lang.Class({
 
     },
     getUserName: function () {
+        
+
         try {
             let [result, stdout, stderr] = GLib.spawn_command_line_sync("whoami");
             if (stdout != null) {
-                return stdout.toString();
+                return ByteArray.toString(stdout);
             }
         }
         catch (e) {
@@ -191,6 +223,7 @@ const DevBar = new Lang.Class({
         return "NO_USER";
     },
     loadWorkflowAsync: function loadWorkflowAsync(callback) {
+        
 
         let context = this;
         let message = Soup.Message.new('GET', this.url);
@@ -200,6 +233,8 @@ const DevBar = new Lang.Class({
             Soup.Session.prototype.add_feature.call(_httpSession, new Soup.ProxyResolverDefault());
         }
         _httpSession.queue_message(message, function soupQueue(session, message) {
+            
+
             if (message.response_body.data) {
                 try {
                     callback.call(context, JSON.parse(message.response_body.data));
@@ -214,6 +249,8 @@ const DevBar = new Lang.Class({
         });
     },
     _onPanelStatesChanged: function (settings, key) {
+        
+
         // Read the new settings
         let url = this.settings.get_value('url').unpack();
         this.setUrl(url);
@@ -221,6 +258,8 @@ const DevBar = new Lang.Class({
     },
 
     destroy: function (params) {
+        
+        this.stop = true;
         if (_httpSession !== undefined)
             _httpSession.abort();
         _httpSession = undefined;
@@ -233,24 +272,31 @@ const DevBar = new Lang.Class({
         this.settings.disconnect(this._onUrlChangedId);
         this.settings.disconnect(this._onIntervalChangedId);
         this.parent();
+        
+
     }
 });
 
 let indicator = null;
 
 function init() {
+    
 }
 
 
 function enable() {
+    
     indicator = new DevBar;
     Main.panel.addToStatusArea(`${Me.metadata.name} Indicator`, indicator, 0, 'right');
 }
 
 
 function disable() {
+    
     if (indicator !== null) {
         indicator.destroy();
         indicator = null;
+        
+
     }
 }
