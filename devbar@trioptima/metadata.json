@@ -3,5 +3,5 @@
     "name": "DevBar",
     "description": "This extension helps you keep track of your development workflow.",
     "version": 1,
-    "shell-version": [ "3.30", "3.32" ]
+    "shell-version": [ "3.36.8" ]
 }
