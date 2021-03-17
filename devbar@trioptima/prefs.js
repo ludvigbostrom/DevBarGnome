@@ -28,10 +28,11 @@ function buildPrefsWidget() {
         margin: 18,
         column_spacing: 12,
         row_spacing: 12,
+        column_homogeneous: false,
+        valign: Gtk.Align.START,
         visible: true,
     });
 
-    // Add a simple title and add it to the prefsWidget
     let title = new Gtk.Label({
         label: `<b>${Me.metadata.name} Extension Preferences</b>`,
         halign: Gtk.Align.START,
@@ -50,6 +51,7 @@ function buildPrefsWidget() {
     let inputField = new Gtk.Entry({
         text: Me.settings.get_string('url'),
         halign: Gtk.Align.END,
+        width_request: 400,
         visible: true,
     });
     prefsWidget.attach(inputField, 1, 3, 1, 1);
