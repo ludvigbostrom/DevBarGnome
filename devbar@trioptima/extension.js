@@ -130,19 +130,16 @@ const DevBar = new Lang.Class({
         }
         this._timout = Mainloop.timeout_add_seconds(this.interval, Lang.bind(this, function mainloopTimeout() {
             
-
             this.update();
         }))
     },
     onWorkflowCallback: function (data) {
-        
 
         this.updateLabel(data);
         this.updateMenu(data);
     },
     updateLabel: function (json) {
         
-
         this.currentCount = 0;
         let title = "";
         let displayObjects = json['metadata']['display'];
@@ -163,8 +160,6 @@ const DevBar = new Lang.Class({
     },
     updateMenu: function (json) {
         
-
-
         this.menu.removeAll();
         let displayObjects = json['metadata']['display'];
         let context = this;
@@ -174,7 +169,7 @@ const DevBar = new Lang.Class({
             let display = displayObjects[key];
             if (data && data.length > 0) {
                 let item = null;
-                if (context.currentCount > 40) {
+                if (context.currentCount > 25) {
                     item = new PopupMenu.PopupSubMenuMenuItem(display['title']);
                     item.menu.actor.style = 'max-height: 300px;';
                 }
@@ -188,7 +183,7 @@ const DevBar = new Lang.Class({
                     subItem.connect('activate', Lang.bind(context, function () {
                         Util.spawnCommandLine("xdg-open " + issue['url']);
                     }));
-                    if (context.currentCount > 40) {
+                    if (context.currentCount > 25) {
                         item.menu.addMenuItem(subItem);
                         
                     }
