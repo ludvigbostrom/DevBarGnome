@@ -225,7 +225,7 @@ var DevBar = GObject.registerClass({},
 
             this.settings.disconnect(this._onUrlChangedId);
             this.settings.disconnect(this._onIntervalChangedId);
-            this.parent();
+            super.destroy();
         }
     });
 
