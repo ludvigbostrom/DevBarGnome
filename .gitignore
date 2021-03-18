@@ -2,3 +2,4 @@ node_modules/
 .eslintrc.yml
 package.json
 package-lock.json
+*.zip
