@@ -13,11 +13,11 @@ If necessary:
 
 Then:
 
-    cp -ar devbar@trioptima ~/.local/share/gnome-shell/extensions
+    cp -ar devbar@ludvigbostrom ~/.local/share/gnome-shell/extensions
 
 or (repo directory)
 
-    ln -s devbar@trioptima ~/.local/share/gnome-shell/extensions/devbar@trioptima
+    ln -s devbar@ludvigbostrom ~/.local/share/gnome-shell/extensions/devbar@ludvigbostrom
 
 Then logout and log back in again.
 
