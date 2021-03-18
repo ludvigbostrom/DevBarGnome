@@ -1,6 +1,7 @@
 ## Dev bar for gnome. 
 
-Gnome version of the DevBar originally made for mac https://github.com/boxed/DevBar
+Gnome version of the DevBar originally made for mac https://github.com/boxed/DevBar.
+See mac version readme for more information.
 
 #### Install
 First run:
