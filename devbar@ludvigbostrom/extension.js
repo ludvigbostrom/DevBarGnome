@@ -138,15 +138,14 @@ var DevBar = GObject.registerClass({},
             this.currentCount = 0;
             let title = '';
             let displayObjects = json['metadata']['display'];
-            let context = this;
             Object.keys(displayObjects).forEach(function (key) {
                 let data = json['data'][key];
                 let display = displayObjects[key];
                 if (data && data.length > 0) {
-                    context.currentCount += 1 + data.length;
+                    this.currentCount += 1 + data.length;
                     title += `${display['symbol'] + data.length.toString()}  `;
                 }
-            });
+            }.bind(this));
             if (title === '')
                 title = '✓';
             this.toplabel.set_text(title);
@@ -187,7 +186,6 @@ var DevBar = GObject.registerClass({},
         }
 
         loadWorkflowAsync(callback) {
-            let context = this;
             let message = Soup.Message.new('GET', this.url);
 
             if (!this.httpSession) {
@@ -197,14 +195,14 @@ var DevBar = GObject.registerClass({},
             this.httpSession.queue_message(message, function soupQueue(_, msg) {
                 if (msg.response_body.data) {
                     try {
-                        callback.call(context, JSON.parse(msg.response_body.data));
+                        callback.call(this, JSON.parse(msg.response_body.data));
                     } catch (err) {
-                        context.toplabel.set_text('!');
+                        this.toplabel.set_text('!');
                     }
-                } else {
-                    context.toplabel.set_text('!');
+                } else if (msg.status_code !== 503) {
+                    this.toplabel.set_text('!');
                 }
-            });
+            }.bind(this));
         }
 
         _onPanelStatesChanged() {
