@@ -73,7 +73,7 @@ var DevBar = GObject.registerClass({},
 
         getUserName() {
             try {
-                let [stdout] = GLib.spawn_command_line_sync('whoami');
+                let [_, stdout] = GLib.spawn_command_line_sync('whoami');
                 if (stdout !== null)
                     return ByteArray.toString(stdout);
             } catch (e) {
