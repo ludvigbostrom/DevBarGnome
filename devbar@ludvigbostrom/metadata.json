@@ -2,7 +2,7 @@
     "uuid": "devbar@ludvigbostrom",
     "name": "DevBar",
     "description": "This extension helps you keep track of your development workflow.",
-    "version": 1,
+    "version": 2,
     "shell-version": [ "3.36.8" ],
     "url": "https://github.com/ludvigbostrom/DevBarGnome"
 }
