@@ -13,7 +13,6 @@ const PopupMenu = imports.ui.popupMenu;
 const Soup = imports.gi.Soup;
 const Util = imports.misc.util;
 const Mainloop = imports.mainloop;
-const ByteArray = imports.byteArray;
 
 var DevBar = GObject.registerClass({},
     class DevBar extends PanelMenu.Button {
@@ -24,7 +23,7 @@ var DevBar = GObject.registerClass({},
             // Set up runtime settings and defaults
             this.settings = this.setUpSettings();
             this.setUpSettingsWatchers();
-            this.username = this.getUserName();
+            this.username = GLib.get_user_name();
             this.url = this.setUpUrl();
             this.interval = this.settings.get_value('interval').unpack();
             this.toplabel = this.buildLabel('Dev bar');
@@ -69,16 +68,6 @@ var DevBar = GObject.registerClass({},
                 return '';
             else
                 return url.endsWith('/') ? url + this.username : `${url}/${this.username}`;
-        }
-
-        getUserName() {
-            try {
-                let [_, stdout] = GLib.spawn_command_line_sync('whoami');
-                if (stdout !== null)
-                    return ByteArray.toString(stdout);
-            } catch (e) {
-            }
-            return 'NO_USER';
         }
 
         openPreferences() {
@@ -210,7 +199,7 @@ var DevBar = GObject.registerClass({},
             this.interval = this.settings.get_value('interval').unpack();
         }
 
-        destroy() {
+        _onDestroy() {
             this.stop = true;
             if (this.httpSession !== undefined)
                 this.httpSession.abort();
@@ -223,7 +212,7 @@ var DevBar = GObject.registerClass({},
 
             this.settings.disconnect(this._onUrlChangedId);
             this.settings.disconnect(this._onIntervalChangedId);
-            super.destroy();
+            super._onDestroy();
         }
     });
 
