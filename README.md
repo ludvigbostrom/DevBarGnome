@@ -3,6 +3,10 @@
 Gnome version of the DevBar originally made for mac https://github.com/boxed/DevBar.
 See mac version readme for more information.
 
+## Install
+
+Install via https://extensions.gnome.org/extension/4091/devbar/
+
 ## What is it
 
 The DevBar is a tool to overview your development workflow. 
