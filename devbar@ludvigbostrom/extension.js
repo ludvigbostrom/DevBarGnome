@@ -182,13 +182,13 @@ var DevBar = GObject.registerClass({},
                 Soup.Session.prototype.add_feature.call(this.httpSession, new Soup.ProxyResolverDefault());
             }
             this.httpSession.queue_message(message, function soupQueue(_, msg) {
-                if (msg.response_body.data) {
+                if (msg && msg.response_body.data) {
                     try {
                         callback.call(this, JSON.parse(msg.response_body.data));
                     } catch (err) {
                         this.toplabel.set_text('!');
                     }
-                } else if (msg.status_code !== 503) {
+                } else if ((msg && msg.status_code !== 503) || !msg) {
                     this.toplabel.set_text('!');
                 }
             }.bind(this));
