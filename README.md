@@ -3,6 +3,8 @@
 Gnome version of the DevBar originally made for mac https://github.com/boxed/DevBar.
 See mac version readme for more information.
 
+There is also a Cinnamon applet that can be found here: https://cinnamon-spices.linuxmint.com/applets/view/340
+
 ## Install
 
 Install via https://extensions.gnome.org/extension/4091/devbar/
@@ -89,5 +91,6 @@ This can be achieved by assigning the url in the settings window to an endpoint 
  One such example can be found at [here](https://raw.githubusercontent.com/ludvigbostrom/DevBarGnome/master/example.json?). 
 
 ### Setup
-Right click on applet -> "configure" to setup which url and refresh intervals.
+Configure in Tweaks -> Extensions -> DevBar (The settings button) or click the panel button and click "Preferences".
+Here you can set up the backend url and refresh interval.
 
