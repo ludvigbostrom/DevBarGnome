@@ -1,3 +1,6 @@
+# Development has stopped.
+Feel free to make your own forks.
+
 ## Dev bar for gnome. 
 
 Gnome version of the DevBar originally made for mac https://github.com/boxed/DevBar.
